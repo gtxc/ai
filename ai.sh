@@ -159,6 +159,7 @@ base_install() {
 
 	inf "Enabling colors, animations, and parallel downloads for pacman..."
 	sed -i "s/^#Color$/Color/" /mnt/etc/pacman.conf
+	sed -i "s/^#VerbosePkgLists$/VerbosePkgLists/" /mnt/etc/pacman.conf
 	sed -i "/^CheckSpace$/a ILoveCandy" /mnt/etc/pacman.conf
 	sed -i "s/^#ParallelDownloads = \([0-9]\+\)$/ParallelDownloads = \1/g" /mnt/etc/pacman.conf
 
