@@ -26,6 +26,7 @@ main() {
 verify_user() {
   inf "Verifying user..."
   [ "$(id -u)" -eq 0 ] || die "This script must be run as root."
+  echo "$username" | grep -qE "^[a-z_][a-z0-9_-]*$" || die "Username '$username' is not valid."
 }
 
 verify_boot_mode() {
@@ -34,7 +35,7 @@ verify_boot_mode() {
 }
 
 check_disk() {
-  inf "Checking disk ${disk}..."
+  inf "Checking disk '$disk'..."
   [ -z "$disk" ] || [ ! -b "$disk" ] && die "No installable disk found."
 
   inf "--- Devices ---"
@@ -47,7 +48,7 @@ check_disk() {
 check_network() {
   inf "Checking network connection..."
   if ! nc -zw1 archlinux.org 443; then
-    inf "Connecting to $ssid through $station..."
+    inf "Connecting to '$ssid' through '$station'..."
     iwctl station "$station" connect "$ssid" --passphrase "$passphrase" || die "Failed to connect. Check network preferences."
   fi
   timedatectl set-ntp true
@@ -55,11 +56,11 @@ check_network() {
 
 partition_disk() {
   inf "Creating partitions..."
-  parted -s $disk mklabel gpt
-  parted -sa optimal $disk mkpart primary fat32 0% 1025MiB
-  parted -sa optimal $disk mkpart primary linux-swap 1025MiB 9218MiB
-  parted -sa optimal $disk mkpart primary ext4 9218MiB 100%
-  parted -s $disk set 1 esp on
+  parted -s "$disk" mklabel gpt
+  parted -sa optimal "$disk" mkpart primary fat32 0% 1025MiB
+  parted -sa optimal "$disk" mkpart primary linux-swap 1025MiB 9218MiB
+  parted -sa optimal "$disk" mkpart primary ext4 9218MiB 100%
+  parted -s "$disk" set 1 esp on
 
   inf "Informing the Kernel about the disk changes..."
   partprobe "$disk"
@@ -67,16 +68,16 @@ partition_disk() {
 
 format_disk() {
   inf "Formatting partitions..."
-  mkfs.fat -IF32 ${disk}1
-  mkswap ${disk}2
-  echo "y" | mkfs.ext4 ${disk}3
+  mkfs.fat -IF32 "${disk}1"
+  mkswap "${disk}2"
+  echo "y" | mkfs.ext4 "${disk}3"
 }
 
 mount_fs() {
   inf "Mounting filesystem..."
-  mount ${disk}3 /mnt
-  mount -m ${disk}1 /mnt/boot
-  swapon ${disk}2
+  mount "${disk}3" /mnt
+  mount -m "${disk}1" /mnt/boot
+  swapon "${disk}2"
 }
 
 detect_ucode() {
@@ -124,7 +125,7 @@ base_install() {
   inf "Setting root password..."
   printf "%s:%s" "root" "$password" | arch-chroot /mnt chpasswd
 
-  inf "Creating user ${username}..."
+  inf "Creating user '${username}'..."
   arch-chroot /mnt useradd -m "$username"
   arch-chroot /mnt usermod -aG wheel "$username"
   printf "%s:%s" "$username" "$password" | arch-chroot /mnt chpasswd "$username"
@@ -149,7 +150,7 @@ base_install() {
 	EOF
 
   mkdir -p /mnt/boot/loader/entries
-  puiid=$(blkid -s PARTUUID -o value ${disk}3)
+  puiid=$(blkid -s PARTUUID -o value "${disk}3")
   cat <<-EOF >/mnt/boot/loader/entries/arch.conf
 		title Arch Linux
 		linux /vmlinuz-linux
@@ -208,6 +209,7 @@ log() {
     set -x # -e
     main 2>&1 | tee "$wd"/"$log_file"
     cp "$wd"/"$log_file" /home/"$username"/
+    inf "See $wd/$log_file or ~/$log_file for installation logs."
     return
   fi
   main
