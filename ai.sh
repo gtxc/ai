@@ -170,10 +170,10 @@ base_install() {
 }
 
 post_install() {
-  curl --create-dirs -LO --output-dir /mnt/home/"$username" https://raw.githubusercontent.com/gtxc/di/master/di.sh
+  curl --create-dirs -LO --output-dir /mnt/home/"$username" https://raw.githubusercontent.com/gtxc/pi/master/pi.sh
   arch-chroot /mnt chown "$username":"$username" /home/"$username"/di.sh
   inf "Installation completed."
-  inf "See ~/di.sh for post installation."
+  inf "See ~/pi.sh for post installation."
 }
 
 umount_fs() {
