@@ -133,11 +133,8 @@ base_install() {
   inf "Setting sudo permissions..."
   echo "%wheel ALL=(ALL) ALL" >/mnt/etc/sudoers.d/00_"$username"
 
-  inf "Setting sudo keep env, pwfeedback..."
-  echo "Defaults !env_reset,pwfeedback" >>/mnt/etc/sudoers.d/00_"$username"
-
-  inf "Setting default editor nvim..."
-  echo "Defaults editor=/usr/bin/nvim" >>/mnt/etc/sudoers.d/00_"$username"
+  inf "Setting pwfeedback..."
+  echo "Defaults pwfeedback" >>/mnt/etc/sudoers.d/00_"$username"
 
   inf "Installing systemd-boot..."
   arch-chroot /mnt bootctl --path=/boot install
