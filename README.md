@@ -34,11 +34,15 @@ This POSIX-compliant shell script automates the installation of Arch Linux on a 
    - `hostname`: System hostname
    - `disk`: Target disk for installation (e.g., `/dev/sda`)
 
-3. **Run the Script**: Make the script executable and start the installation.
+3. **Run the Script**: Execute directly using `sh` or make the script executable and start the installation.
 
+    ```sh
+    sh ai.sh
+    ```
+    OR
    ```sh
-   chmod +x install.sh
-   ./install.sh
+   chmod +x ai.sh
+   ./ai.sh
    ```
 
 4. Follow any prompts during installation to confirm disk operations.
