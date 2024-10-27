@@ -23,7 +23,7 @@ This POSIX-compliant shell script automates the installation of Arch Linux on a 
 1. **Download the Script**: Clone or download this repository to your live USB or environment.
 
    ```sh
-   curl -LO https://raw.githubusercontent.com/gtxc/arch-auto-install/main/install.sh
+   curl -LO https://raw.githubusercontent.com/gtxc/ai/master/ai.sh
    ```
 
 2. **Edit Script Variables:** Open the script in a text editor and set values for the following variables:
