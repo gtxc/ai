@@ -139,6 +139,13 @@ base_install() {
   inf "Installing systemd-boot..."
   arch-chroot /mnt bootctl --path=/boot install
 
+  inf "Enabling all cores to use for compilation..."
+  sed -i "s/-j2/-j$(nproc)/;/^#MAKEFLAGS/s/^#//" /etc/makepkg.conf
+
+  inf "Disabling makepkg compression..."
+  sed -i "/# PKGEXT=/a PKGEXT='.pkg.tar'" /etc/makepkg.conf
+  sed -i "/# SRCEXT=/a SRCEXT='.src.tar'" /etc/makepkg.conf
+
   inf "Creating and editing systemd-boot loader entry..."
   mkdir -p /mnt/boot/loader
   cat <<-EOF >/mnt/boot/loader/loader.conf
