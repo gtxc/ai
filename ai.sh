@@ -100,7 +100,7 @@ detect_ucode() {
 
 base_install() {
   inf "Installing base packages..."
-  pacstrap -K /mnt base base-devel linux linux-firmware "$ucode" neovim tmux git networkmanager man-db man-pages
+  pacstrap -K /mnt base base-devel linux linux-firmware "$ucode" dash neovim tmux git networkmanager man-db man-pages
 
   inf "Generating fstab..."
   genfstab -U /mnt >>/mnt/etc/fstab
