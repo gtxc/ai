@@ -7,7 +7,7 @@ username=""
 password=""
 hostname="arch"
 disk=/dev/sdX
-debug=true
+debug=false
 
 main() {
   verify_user
@@ -36,12 +36,12 @@ verify_boot_mode() {
 
 check_disk() {
   inf "Checking disk '$disk'..."
-  [ -z "$disk" ] || [ ! -b "$disk" ] && die "No installable disk found."
+  [ -z "$disk" ] || [ -b "$disk" ] || die "No installable disk found."
 
   inf "--- Devices ---"
   lsblk -o NAME,SIZE,TYPE,MOUNTPOINTS
   ans=no
-  get ans "The disk '$disk' will be wiped. Are you sure you want to proceed? (yes/no): "
+  get ans "The disk '$disk' will be wiped. Are you sure you want to proceed? (yes): "
   [ "$ans" = "yes" ] || die "Process terminated!"
 }
 
@@ -66,18 +66,27 @@ partition_disk() {
   partprobe "$disk"
 }
 
+ONE="1"
+TWO="2"
+THREE="3"
+
 format_disk() {
+  if echo "$disk" | grep -qE "/dev/nvme"; then
+    ONE="p1"
+    TWO="p2"
+    THREE="p3"
+  fi
   inf "Formatting partitions..."
-  mkfs.fat -IF32 "${disk}1"
-  mkswap "${disk}2"
-  echo "y" | mkfs.ext4 "${disk}3"
+  mkfs.fat -IF32 "$disk$ONE"
+  mkswap "$disk$TWO"
+  echo "y" | mkfs.ext4 "$disk$THREE"
 }
 
 mount_fs() {
   inf "Mounting filesystem..."
-  mount "${disk}3" /mnt
-  mount -m "${disk}1" /mnt/boot
-  swapon "${disk}2"
+  mount "$disk$THREE" /mnt
+  mount -m "$disk$ONE" /mnt/boot
+  swapon "$disk$TWO"
 }
 
 detect_ucode() {
@@ -154,7 +163,7 @@ base_install() {
 	EOF
 
   mkdir -p /mnt/boot/loader/entries
-  puiid=$(blkid -s PARTUUID -o value "${disk}3")
+  puiid=$(blkid -s PARTUUID -o value "$disk$THREE")
   cat <<-EOF >/mnt/boot/loader/entries/arch.conf
 		title Arch Linux
 		linux /vmlinuz-linux
@@ -182,9 +191,9 @@ post_install() {
 
 umount_fs() {
   inf "Unmounting filesystem..."
-  umount ${disk}1
-  umount ${disk}3
-  swap off ${disk}2
+  umount "$disk$ONE"
+  umount "$disk$THREE"
+  swap off "$disk$TWO"
 }
 
 inf() {
