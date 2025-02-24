@@ -10,31 +10,31 @@ disk=/dev/sdX
 debug=false
 
 main() {
-  verify_user
-  verify_boot_mode
-  check_disk
-  check_network
-  partition_disk
-  format_disk
-  mount_fs
-  detect_ucode
-  base_install
-  post_install
-  umount_fs
+  verifyuser
+  verifybootmode
+  checkdisk
+  checknetwork
+  partitiondisk
+  formatdisk
+  mountfs
+  detectucode
+  baseinstall
+  postinstall
+  umountfs
 }
 
-verify_user() {
+verifyuser() {
   inf "Verifying user..."
   [ "$(id -u)" -eq 0 ] || die "This script must be run as root."
   echo "$username" | grep -qE "^[a-z_][a-z0-9_-]*$" || die "Username '$username' is not valid."
 }
 
-verify_boot_mode() {
+verifybootmode() {
   inf "Verifying boot mode: UEFI..."
   [ -d /sys/firmware/efi ] || die "Reboot system in UEFI mode."
 }
 
-check_disk() {
+checkdisk() {
   inf "Checking disk '$disk'..."
   [ -z "$disk" ] || [ -b "$disk" ] || die "No installable disk found."
 
@@ -45,7 +45,7 @@ check_disk() {
   [ "$ans" = "yes" ] || die "Process terminated!"
 }
 
-check_network() {
+checknetwork() {
   inf "Checking network connection..."
   if ! nc -zw1 archlinux.org 443; then
     inf "Connecting to '$ssid' through '$station'..."
@@ -54,7 +54,7 @@ check_network() {
   timedatectl set-ntp true
 }
 
-partition_disk() {
+partitiondisk() {
   inf "Creating partitions..."
   parted -s "$disk" mklabel gpt
   parted -sa optimal "$disk" mkpart primary fat32 0% 1025MiB
@@ -70,7 +70,7 @@ ONE="1"
 TWO="2"
 THREE="3"
 
-format_disk() {
+formatdisk() {
   if echo "$disk" | grep -qE "/dev/nvme"; then
     ONE="p1"
     TWO="p2"
@@ -82,14 +82,14 @@ format_disk() {
   echo "y" | mkfs.ext4 "$disk$THREE"
 }
 
-mount_fs() {
+mountfs() {
   inf "Mounting filesystem..."
   mount "$disk$THREE" /mnt
   mount -m "$disk$ONE" /mnt/boot
   swapon "$disk$TWO"
 }
 
-detect_ucode() {
+detectucode() {
   inf "Detecting ucode..."
   cpu=$(grep vendor_id /proc/cpuinfo)
   case "$cpu" in
@@ -107,7 +107,7 @@ detect_ucode() {
   esac
 }
 
-base_install() {
+baseinstall() {
   inf "Installing base packages..."
   pacstrap -K /mnt base base-devel linux linux-firmware "$ucode" dash neovim tmux git networkmanager man-db man-pages
 
@@ -140,10 +140,10 @@ base_install() {
   printf "%s:%s" "$username" "$password" | arch-chroot /mnt chpasswd "$username"
 
   inf "Setting sudo permissions..."
-  echo "%wheel ALL=(ALL) ALL" >/mnt/etc/sudoers.d/00_"$username"
+  echo "%wheel ALL=(ALL) ALL" >/mnt/etc/sudoers.d/00"$username"
 
   inf "Setting pwfeedback..."
-  echo "Defaults pwfeedback" >>/mnt/etc/sudoers.d/00_"$username"
+  echo "Defaults pwfeedback" >>/mnt/etc/sudoers.d/00"$username"
 
   inf "Installing systemd-boot..."
   arch-chroot /mnt bootctl --path=/boot install
@@ -182,14 +182,14 @@ base_install() {
   arch-chroot /mnt systemctl enable NetworkManager.service
 }
 
-post_install() {
+postinstall() {
   curl --create-dirs -LO --output-dir /mnt/home/"$username" https://raw.githubusercontent.com/gtxc/pi/master/pi.sh
   arch-chroot /mnt chown "$username":"$username" /home/"$username"/di.sh
   inf "Installation completed."
   inf "See ~/pi.sh for post installation."
 }
 
-umount_fs() {
+umountfs() {
   inf "Unmounting filesystem..."
   umount "$disk$ONE"
   umount "$disk$THREE"
@@ -217,12 +217,12 @@ get() {
 log() {
   if [ "$debug" = "true" ]; then
     PS4="\033[1m\033[32m=>\033[37m "
-    log_file="installation_$(date +%Y%m%d_%H%M%S).log"
+    logfile="installation_$(date +%Y%m%d_%H%M%S).log"
     wd="$PWD"
     set -x # -e
-    main 2>&1 | tee "$wd"/"$log_file"
-    cp "$wd"/"$log_file" /home/"$username"/
-    inf "See $wd/$log_file or ~/$log_file for installation logs."
+    main 2>&1 | tee "$wd"/"$logfile"
+    cp "$wd"/"$logfile" /home/"$username"/
+    inf "See $wd/$logfile or ~/$logfile for installation logs."
     return
   fi
   main
